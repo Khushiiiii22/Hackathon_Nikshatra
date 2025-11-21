@@ -14,7 +14,7 @@ from config import (
     TROPONIN_NORMAL, TROPONIN_ELEVATED, TROPONIN_HIGH
 )
 from data_loader import PatientData, calculate_troponin_trend
-from agents.base import FractalAgent, DiagnosisResult
+from src.agents.base import FractalAgent, DiagnosisResult
 from loguru import logger
 
 

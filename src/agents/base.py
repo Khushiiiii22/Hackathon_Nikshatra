@@ -241,9 +241,18 @@ class MasterOrchestrator:
         # Gather results
         if tasks:
             results = await asyncio.gather(*tasks, return_exceptions=True)
+            print(f"\n[ORCHESTRATOR DEBUG] Gathered {len(results)} results:")
+            for i, r in enumerate(results):
+                print(f"  Result {i}: type={type(r).__name__}")
+                if isinstance(r, DiagnosisResult):
+                    print(f"    -> {r.agent_name}: {r.diagnosis.value} ({r.confidence:.2f})")
+                elif isinstance(r, Exception):
+                    print(f"    -> Exception: {r}")
+            
             state.diagnosis_results = [
                 r for r in results if isinstance(r, DiagnosisResult)
             ]
+            print(f"  Filtered: {len(state.diagnosis_results)} DiagnosisResults\n")
         
         # Synthesize final diagnosis
         state = self._synthesize_final_diagnosis(state)
@@ -259,24 +268,19 @@ class MasterOrchestrator:
         """
         Determine which specialty agents to activate based on presentation
         
-        For chest pain, we typically consider:
-        - Cardiology (always for chest pain)
-        - Gastroenterology (if meal-related symptoms)
-        - Pulmonology (if dyspnea)
-        - MSK (if reproducible with palpation)
-        - Psychiatry (if psych history)
+        For chest pain, we activate ALL registered specialty agents to ensure
+        comprehensive differential diagnosis:
+        - Safety (ALWAYS - monitors for critical conditions)
+        - Cardiology (rule out MI, ACS, pericarditis, etc.)
+        - Gastroenterology (GERD, esophageal spasm, biliary)
+        - Pulmonology (PE, pneumothorax, pneumonia, pleuritis)
+        - MSK (costochondritis, muscle strain, rib fracture)
         """
-        agents = [SpecialtyType.CARDIOLOGY]  # Always check cardiac first
+        # Activate ALL registered specialty agents for comprehensive analysis
+        # This ensures we don't miss diagnoses from any specialty
+        agents = list(self.specialty_agents.keys())
         
-        # Add other specialties based on symptoms/history
-        # In a full implementation, this would use NLP on chief complaint
-        
-        # For demo, activate multiple agents
-        agents.extend([
-            SpecialtyType.GASTROENTEROLOGY,
-            SpecialtyType.PULMONOLOGY,
-            SpecialtyType.MUSCULOSKELETAL
-        ])
+        logger.info(f"Routing patient to {len(agents)} specialty agents: {[a.value for a in agents]}")
         
         return agents
     
@@ -285,15 +289,17 @@ class MasterOrchestrator:
         Synthesize results from all specialty agents
         
         Priority order:
-        1. Highest risk level
-        2. Highest confidence
-        3. Most specific diagnosis
+        1. CRITICAL/HIGH risk: Pick highest confidence among life-threatening diagnoses
+        2. MODERATE/LOW risk: Only consider if no CRITICAL/HIGH diagnoses found
+        
+        This ensures life-threatening conditions (PE, MI, etc.) are never 
+        overshadowed by benign conditions (stable angina, GERD, etc.)
         """
         if not state.diagnosis_results:
             state.confidence = 0.0
             return state
         
-        # Sort by risk level (descending) then confidence (descending)
+        # Risk level priority mapping
         risk_priority = {
             RiskLevel.CRITICAL: 4,
             RiskLevel.HIGH: 3,
@@ -301,11 +307,36 @@ class MasterOrchestrator:
             RiskLevel.LOW: 1
         }
         
-        sorted_results = sorted(
-            state.diagnosis_results,
-            key=lambda x: (risk_priority.get(x.risk_level, 0), x.confidence),
-            reverse=True
-        )
+        # Separate life-threatening (CRITICAL/HIGH) from non-emergent (MODERATE/LOW)
+        life_threatening = [
+            r for r in state.diagnosis_results 
+            if r.risk_level in [RiskLevel.CRITICAL, RiskLevel.HIGH]
+        ]
+        
+        non_emergent = [
+            r for r in state.diagnosis_results
+            if r.risk_level in [RiskLevel.MODERATE, RiskLevel.LOW]
+        ]
+        
+        # If any life-threatening diagnoses found, prioritize them
+        if life_threatening:
+            # Among life-threatening, sort by risk then confidence
+            sorted_results = sorted(
+                life_threatening,
+                key=lambda x: (risk_priority.get(x.risk_level, 0), x.confidence),
+                reverse=True
+            )
+            logger.warning(
+                f"⚠️ LIFE-THREATENING diagnosis detected: {sorted_results[0].diagnosis.value} "
+                f"({sorted_results[0].risk_level.value}) - confidence {sorted_results[0].confidence:.2f}"
+            )
+        else:
+            # No life-threatening diagnoses, use non-emergent sorted by confidence
+            sorted_results = sorted(
+                non_emergent,
+                key=lambda x: x.confidence,
+                reverse=True
+            )
         
         # Top diagnosis
         state.confidence = sorted_results[0].confidence if sorted_results else 0.0

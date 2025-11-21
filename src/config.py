@@ -71,6 +71,7 @@ class SpecialtyType(str, Enum):
     """Medical specialties"""
     CARDIOLOGY = "cardiology"
     GASTROENTEROLOGY = "gastroenterology"
+    PULMONARY = "pulmonary"
     PULMONOLOGY = "pulmonology"
     MUSCULOSKELETAL = "musculoskeletal"
     PSYCHIATRY = "psychiatry"
@@ -89,16 +90,23 @@ class DiagnosisType(str, Enum):
     PERICARDITIS = "Pericarditis"
     MYOCARDITIS = "Myocarditis"
     
-    # GI
+    # GI (Gastroenterology)
     GERD = "GERD"
-    PUD = "Peptic Ulcer Disease"
+    PEPTIC_ULCER = "Peptic Ulcer Disease"
     ESOPHAGEAL_SPASM = "Esophageal Spasm"
+    BILIARY_COLIC = "Biliary Colic"
+    CHOLECYSTITIS = "Cholecystitis"
+    PANCREATITIS = "Pancreatitis"
+    ESOPHAGEAL_RUPTURE = "Esophageal Rupture"
+    NON_CARDIAC_CHEST_PAIN = "Non-Cardiac Chest Pain"
     
     # Pulmonary
+    PULMONARY_EMBOLISM = "Pulmonary Embolism"
     PE = "Pulmonary Embolism"
     MASSIVE_PE = "Massive Pulmonary Embolism"
     PNEUMOTHORAX = "Pneumothorax"
     PNEUMONIA = "Pneumonia"
+    PLEURITIS = "Pleuritis"
     PLEURISY = "Pleurisy"
     
     # MSK

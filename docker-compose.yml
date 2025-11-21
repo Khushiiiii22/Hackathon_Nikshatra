@@ -1,0 +1,343 @@
+# 🐳 Docker Compose Infrastructure Setup
+
+version: '3.8'
+
+services:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # STREAMING & MESSAGING
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  # Apache Kafka - Real-time event streaming for vital signs
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: mimiq-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - mimiq-network
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
+  
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: mimiq-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - mimiq-network
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+  
+  # Kafka UI for monitoring
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: mimiq-kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: mimiq-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    networks:
+      - mimiq-network
+  
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # CACHING & STATE MANAGEMENT
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  # Redis - Distributed caching and session storage
+  redis:
+    image: redis:7-alpine
+    container_name: mimiq-redis
+    command: redis-server --appendonly yes --requirepass mimiq_redis_password
+    ports:
+      - "6379:6379"
+    networks:
+      - mimiq-network
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+  
+  # Redis Commander - Redis UI
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: mimiq-redis-commander
+    depends_on:
+      - redis
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:mimiq_redis_password
+    networks:
+      - mimiq-network
+  
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # TIME-SERIES DATABASE
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  # InfluxDB - Time-series database for vital signs
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: mimiq-influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: mimiq_admin_password
+      DOCKER_INFLUXDB_INIT_ORG: mimiq
+      DOCKER_INFLUXDB_INIT_BUCKET: vitals
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: mimiq_influxdb_token_12345
+    networks:
+      - mimiq-network
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+  
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # RELATIONAL DATABASE
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  # PostgreSQL - Patient data, diagnoses, reports
+  postgres:
+    image: postgres:16-alpine
+    container_name: mimiq-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: mimiq
+      POSTGRES_PASSWORD: mimiq_db_password
+      POSTGRES_DB: mimiq_health
+    networks:
+      - mimiq-network
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mimiq"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  # PgAdmin - PostgreSQL UI
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: mimiq-pgadmin
+    depends_on:
+      - postgres
+    ports:
+      - "8082:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@mimiq.health
+      PGADMIN_DEFAULT_PASSWORD: mimiq_pgadmin_password
+    networks:
+      - mimiq-network
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+  
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # MONITORING & OBSERVABILITY
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  # Prometheus - Metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: mimiq-prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - mimiq-network
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+  
+  # Grafana - Metrics visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: mimiq-grafana
+    depends_on:
+      - prometheus
+      - influxdb
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: mimiq_grafana_password
+      GF_INSTALL_PLUGINS: grafana-clock-panel
+    networks:
+      - mimiq-network
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana-dashboards:/etc/grafana/provisioning/dashboards
+  
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # MIMIQ SERVICES
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  # API Gateway
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: mimiq-api-gateway
+    depends_on:
+      - redis
+      - postgres
+      - kafka
+    ports:
+      - "8000:8000"
+    environment:
+      REDIS_URL: redis://:mimiq_redis_password@redis:6379/0
+      POSTGRES_URL: postgresql://mimiq:mimiq_db_password@postgres:5432/mimiq_health
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: mimiq_influxdb_token_12345
+    networks:
+      - mimiq-network
+    volumes:
+      - ./src:/app/src
+      - ./models:/app/models
+  
+  # Agent Orchestrator
+  orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.orchestrator
+    container_name: mimiq-orchestrator
+    depends_on:
+      - redis
+      - kafka
+    environment:
+      REDIS_URL: redis://:mimiq_redis_password@redis:6379/0
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    networks:
+      - mimiq-network
+    volumes:
+      - ./src:/app/src
+      - ./models:/app/models
+    deploy:
+      replicas: 3  # 3 instances for load balancing
+  
+  # Cardiology Agent (Instance 1)
+  cardio-agent-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    container_name: mimiq-cardio-1
+    depends_on:
+      - redis
+    environment:
+      AGENT_TYPE: cardiology
+      INSTANCE_ID: cardio-1
+      REDIS_URL: redis://:mimiq_redis_password@redis:6379/0
+      PORT: 8001
+    ports:
+      - "8001:8001"
+    networks:
+      - mimiq-network
+    volumes:
+      - ./src:/app/src
+      - ./models:/app/models
+  
+  # Cardiology Agent (Instance 2)
+  cardio-agent-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    container_name: mimiq-cardio-2
+    depends_on:
+      - redis
+    environment:
+      AGENT_TYPE: cardiology
+      INSTANCE_ID: cardio-2
+      REDIS_URL: redis://:mimiq_redis_password@redis:6379/0
+      PORT: 8002
+    ports:
+      - "8002:8002"
+    networks:
+      - mimiq-network
+    volumes:
+      - ./src:/app/src
+      - ./models:/app/models
+  
+  # Real-Time Monitor Service
+  realtime-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile.monitor
+    container_name: mimiq-realtime-monitor
+    depends_on:
+      - kafka
+      - influxdb
+      - redis
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: mimiq_influxdb_token_12345
+      REDIS_URL: redis://:mimiq_redis_password@redis:6379/0
+    networks:
+      - mimiq-network
+    ports:
+      - "8765:8765"  # WebSocket port
+  
+  # WebSocket Server (for phone sensors)
+  websocket-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.websocket
+    container_name: mimiq-websocket
+    depends_on:
+      - kafka
+    ports:
+      - "8766:8766"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    networks:
+      - mimiq-network
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# NETWORKS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+networks:
+  mimiq-network:
+    driver: bridge
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# VOLUMES
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+volumes:
+  zookeeper-data:
+  zookeeper-logs:
+  kafka-data:
+  redis-data:
+  influxdb-data:
+  influxdb-config:
+  postgres-data:
+  pgadmin-data:
+  prometheus-data:
+  grafana-data:
