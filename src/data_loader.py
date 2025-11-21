@@ -78,8 +78,13 @@ class MIMICDataLoader:
             logger.error(f"Error loading datasets: {e}")
             raise
     
-    def filter_chest_pain_patients(self) -> pd.DataFrame:
-        """Filter patients with chest pain related diagnoses"""
+    def filter_chest_pain_patients(self) -> List[int]:
+        """
+        Filter patients with chest pain related diagnoses
+        
+        Returns:
+            List of hadm_id (admission IDs) for chest pain patients
+        """
         if self.diagnoses is None:
             raise ValueError("Diagnoses not loaded. Call load_all() first.")
         
@@ -91,17 +96,12 @@ class MIMICDataLoader:
         
         logger.info(f"Found {len(chest_pain_dx)} chest pain diagnoses")
         
-        # Get unique admissions
-        chest_pain_hadm_ids = chest_pain_dx['hadm_id'].unique()
+        # Get unique admissions as list
+        chest_pain_hadm_ids = chest_pain_dx['hadm_id'].unique().tolist()
         
-        # Get admission details
-        chest_pain_admissions = self.admissions[
-            self.admissions['hadm_id'].isin(chest_pain_hadm_ids)
-        ]
+        logger.info(f"Found {len(chest_pain_hadm_ids)} chest pain admissions")
         
-        logger.info(f"Found {len(chest_pain_admissions)} chest pain admissions")
-        
-        return chest_pain_admissions
+        return chest_pain_hadm_ids
     
     def get_patient_data(self, hadm_id: int) -> Optional[PatientData]:
         """Get comprehensive data for a specific admission"""

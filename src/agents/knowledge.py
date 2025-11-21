@@ -429,6 +429,23 @@ class MedicalKnowledgeAgent(FractalAgent):
             'evidence_summary': f"Evidence-based recommendations available for {suspected_diagnosis}",
             'confidence': 1.0  # Guidelines are definitive
         }
+    
+    # Abstract method implementations (Knowledge agent doesn't spawn children)
+    def _identify_subspecialties(self, patient_data: Any) -> List[str]:
+        """Knowledge agent doesn't identify subspecialties"""
+        return []
+    
+    def _generate_hypotheses(self, patient_data: Any) -> List[str]:
+        """Knowledge agent provides evidence, not hypotheses"""
+        return []
+    
+    def _create_child_agent(self, subspecialty: str) -> 'FractalAgent':
+        """Knowledge agent doesn't create children"""
+        return None
+    
+    def _synthesize_results(self, child_results: List[Dict]) -> Dict:
+        """Knowledge agent doesn't synthesize (no children)"""
+        return {}
 
 
 # Example usage

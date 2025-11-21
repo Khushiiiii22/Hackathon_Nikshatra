@@ -75,6 +75,9 @@ class SpecialtyType(str, Enum):
     MUSCULOSKELETAL = "musculoskeletal"
     PSYCHIATRY = "psychiatry"
     SAFETY = "safety"
+    KNOWLEDGE = "knowledge"
+    TREATMENT = "treatment"
+    TRIAGE = "triage"
 
 class DiagnosisType(str, Enum):
     """Diagnosis categories"""
@@ -93,6 +96,7 @@ class DiagnosisType(str, Enum):
     
     # Pulmonary
     PE = "Pulmonary Embolism"
+    MASSIVE_PE = "Massive Pulmonary Embolism"
     PNEUMOTHORAX = "Pneumothorax"
     PNEUMONIA = "Pneumonia"
     PLEURISY = "Pleurisy"

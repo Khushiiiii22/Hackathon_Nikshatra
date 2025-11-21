@@ -163,7 +163,7 @@ class TreatmentAgent(FractalAgent):
         # Initialize treatment plan
         plan = TreatmentPlan(
             diagnosis=diagnosis,
-            patient_id=patient.subject_id
+            patient_id=int(patient.patient_id)
         )
         
         # Check for contraindications
@@ -526,6 +526,23 @@ class TreatmentAgent(FractalAgent):
             'treatment_plan': treatment_plan,
             'confidence': 1.0  # Treatment follows evidence-based guidelines
         }
+    
+    # Abstract method implementations (Treatment agent doesn't spawn children)
+    def _identify_subspecialties(self, patient_data: Any) -> List[str]:
+        """Treatment agent doesn't identify subspecialties"""
+        return []
+    
+    def _generate_hypotheses(self, patient_data: Any) -> List[str]:
+        """Treatment agent provides treatment, not hypotheses"""
+        return []
+    
+    def _create_child_agent(self, subspecialty: str) -> 'FractalAgent':
+        """Treatment agent doesn't create children"""
+        return None
+    
+    def _synthesize_results(self, child_results: List[Dict]) -> Dict:
+        """Treatment agent doesn't synthesize (no children)"""
+        return {}
 
 
 # Example usage
