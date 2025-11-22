@@ -157,6 +157,7 @@ Provide a medical analysis in JSON format with:
 3. risk_level: LOW, MEDIUM, HIGH, or CRITICAL
 4. reasoning: Brief clinical reasoning
 5. recommendations: List of immediate actions
+6. prevention_tips: Lifestyle modifications and preventive measures
 
 **Clinical Context:**
 - Normal HR: 60-100 BPM
@@ -368,7 +369,7 @@ Provide 3-5 specific, actionable recommendations in JSON format:
         
         return response
     
-    def chat(self, message: str, conversation_history: Optional[List[Dict]] = None) -> LLMResponse:
+    def chat(self, message: str, conversation_history: Optional[List[Dict]] = None), language: str = 'english' -> LLMResponse:
         """
         Chat interface for medical Q&A
         
@@ -387,121 +388,56 @@ Provide 3-5 specific, actionable recommendations in JSON format:
                 content = msg.get('content', '')
                 context += f"{role}: {content}\n"
         
+        # Get language-specific instruction
+        language_instruction = LANGUAGE_PROMPTS.get(language.lower(), LANGUAGE_PROMPTS['english'])
+        
         prompt = f"""You are a helpful medical AI assistant for cardiac health.
+        
+{language_instruction}
 
 {context}
 
 User: {message}
 
-Provide a helpful, accurate response. If medical emergency, advise to call 911."""
+Provide a helpful, accurate response with:
+1. Clear medical explanation in simple terms
+2. **Prevention tips and lifestyle recommendations**
+3. When to seek emergency care (if applicable)
+4. Empathetic and supportive tone
+
+If medical emergency, advise to call emergency services (911/108)."""
 
         return self.analyze(prompt, temperature=0.8)
-    
-    def _simulate_response(self, prompt: str) -> LLMResponse:
-        """Simulation mode when Gemini not available"""
-        logger.warning("🔄 Running in simulation mode")
+
+    def analyze_report(self, report_text: str, report_type: str = "general") -> LLMResponse:
+        """
+        Analyze medical reports with structured output
         
-        # Simple rule-based simulation
-        if "heart rate" in prompt.lower() or "vitals" in prompt.lower():
-            simulated = {
-                "diagnosis": "Simulated diagnosis (Gemini not configured)",
-                "confidence": 0,
-                "risk_level": "MEDIUM",
-                "reasoning": "This is a simulation. Configure GEMINI_API_KEY for real analysis.",
-                "recommendations": ["Configure Gemini API key", "Install google-generativeai"]
-            }
+        Args:
+            report_text: Text content of the medical report
+            report_type: Type of report (e.g., 'blood_test', 'ecg', 'xray', 'general')
             
-            return LLMResponse(
-                success=True,
-                text=json.dumps(simulated),
-                confidence=0.0,
-                metadata=simulated
-            )
+        Returns:
+            LLMResponse with structured report analysis
+        """
+        prompt = f"""You are a medical AI assistant analyzing a {report_type} report.
         
-        return LLMResponse(
-            success=True,
-            text="Simulation mode active. Configure GEMINI_API_KEY for real AI analysis.",
-            confidence=0.0
-        )
+**Report Content:**
+{report_text}
 
+**Task:**
+Provide a BRIEF, structured analysis in JSON format with:
 
-# Global singleton instance
-_gemini_service = None
+1. summary: Brief 2-3 sentence overview
+2. key_findings: List of important findings
+3. abnormalities: List of values outside normal range
+4. risk_assessment: LOW/MEDIUM/HIGH with reasoning
+5. recommendations: Immediate actions needed
+6. prevention_tips: Lifestyle changes to improve health
+7. follow_up: When to consult doctor
 
-def get_llm_service() -> GeminiService:
-    """
-    Get global LLM service instance
-    
-    Usage:
-        from src.llm_service import get_llm_service
+Be concise, clear, and patient-friendly. Focus on actionable insights.
+
+Respond ONLY with valid JSON."""
         
-        llm = get_llm_service()
-        response = llm.analyze_medical_vitals(hr=95, hrv=38, spo2=94)
-        print(response.metadata['diagnosis'])
-    """
-    global _gemini_service
-    if _gemini_service is None:
-        _gemini_service = GeminiService()
-    return _gemini_service
-
-
-# Convenience functions for quick access
-def analyze_vitals(heart_rate: int, hrv: float, spo2: int, **kwargs) -> LLMResponse:
-    """Quick access to vital analysis"""
-    return get_llm_service().analyze_medical_vitals(heart_rate, hrv, spo2, **kwargs)
-
-def analyze_trend(vitals_history: List[Dict], **kwargs) -> LLMResponse:
-    """Quick access to trend analysis"""
-    return get_llm_service().analyze_trend(vitals_history, **kwargs)
-
-def predict_risk(current_vitals: Dict, recent_history: List[Dict], **kwargs) -> LLMResponse:
-    """Quick access to risk prediction"""
-    return get_llm_service().predict_risk(current_vitals, recent_history, **kwargs)
-
-def chat_medical(message: str, **kwargs) -> LLMResponse:
-    """Quick access to medical chat"""
-    return get_llm_service().chat(message, **kwargs)
-
-
-if __name__ == "__main__":
-    # Test the service
-    logger.info("🧪 Testing Gemini LLM Service...")
-    
-    llm = get_llm_service()
-    
-    # Test 1: Analyze vitals
-    logger.info("\n📊 Test 1: Analyzing vital signs...")
-    response = llm.analyze_medical_vitals(
-        heart_rate=95,
-        hrv=38,
-        spo2=94
-    )
-    
-    if response.success:
-        logger.info(f"✅ Success!")
-        logger.info(f"Diagnosis: {response.metadata.get('diagnosis')}")
-        logger.info(f"Confidence: {response.confidence * 100:.1f}%")
-        logger.info(f"Risk: {response.metadata.get('risk_level')}")
-    else:
-        logger.error(f"❌ Failed: {response.error}")
-    
-    # Test 2: Trend analysis
-    logger.info("\n📈 Test 2: Trend analysis...")
-    history = [
-        {"hr": 72, "hrv": 65, "timestamp": "10:00"},
-        {"hr": 85, "hrv": 52, "timestamp": "10:05"},
-        {"hr": 95, "hrv": 38, "timestamp": "10:10"}
-    ]
-    
-    response = llm.analyze_trend(history)
-    if response.success and response.metadata:
-        logger.info(f"✅ Trend: {response.metadata.get('trend')}")
-        logger.info(f"Risk trajectory: {response.metadata.get('risk_trajectory')}")
-    
-    # Test 3: Chat
-    logger.info("\n💬 Test 3: Medical chat...")
-    response = llm.chat("What does low HRV mean?")
-    if response.success:
-        logger.info(f"✅ Response: {response.text[:200]}...")
-    
-    logger.info("\n✅ All tests complete!")
+        return self.analyze(prompt, temperature=0.3)
