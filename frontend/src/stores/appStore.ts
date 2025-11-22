@@ -15,6 +15,8 @@ export interface UploadedFile {
   uploadedAt: string;
   status: 'uploading' | 'success' | 'error';
   progress: number;
+  file?: File; // Store the actual file object
+  content?: string; // Store file content for text files
 }
 
 export interface User {
