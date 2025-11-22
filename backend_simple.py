@@ -200,6 +200,41 @@ def analyze():
                 print(f"Agent {agent_id} error: {e}")
                 results[agent_id] = {'error': str(e), 'agent_name': name}
         
+        # Generate AI-powered comprehensive brief with prevention strategies
+        try:
+            brief_prompt = f"""Analyze this medical report and generate a comprehensive brief:
+
+Report Content:
+{context[:2000]}
+
+Symptoms Found: {', '.join(symptoms_found) if symptoms_found else 'None identified'}
+Medications Mentioned: {', '.join(medications_found) if medications_found else 'None'}
+
+Generate a JSON response with:
+{{
+    "patient_brief": "2-3 sentence summary of patient's health status",
+    "condition_identified": "Main health condition or concern",
+    "prevention_strategies": ["List 4-5 specific prevention tips and lifestyle changes"],
+    "medication_recommendations": ["Suggested medications or treatments"],
+    "risk_factors": ["Key risk factors to monitor"],
+    "follow_up_actions": ["Specific follow-up actions needed"]
+}}"""
+            
+            ai_brief = llm_service.analyze(brief_prompt, temperature=0.3, max_tokens=1000)
+            
+            # Try to parse JSON response
+            import json
+            import re
+            # Extract JSON from response
+            json_match = re.search(r'\{.*\}', ai_brief.text, re.DOTALL)
+            if json_match:
+                brief_data = json.loads(json_match.group())
+            else:
+                brief_data = {}
+        except Exception as e:
+            print(f"Brief generation error: {e}")
+            brief_data = {}
+        
         # Generate comprehensive summary with medications
         urgency = 'moderate'
         esi_level = 3
@@ -228,16 +263,32 @@ def analyze():
         summary = {
             'urgency': urgency,
             'esi_level': esi_level,
-            'primary_concern': 'Medical review required',
+            'primary_concern': brief_data.get('condition_identified', 'Medical review required'),
             'recommendation': recommendation,
+            'patient_brief': brief_data.get('patient_brief', 'Comprehensive medical analysis completed by 6 specialist AI agents.'),
             'symptoms_identified': symptoms_found if symptoms_found else ['Under review'],
             'medications_mentioned': medications_found if medications_found else ['None found in report'],
+            'medication_recommendations': brief_data.get('medication_recommendations', [
+                'Consult with your doctor for appropriate medications',
+                'Follow prescribed treatment plan'
+            ]),
+            'prevention_strategies': brief_data.get('prevention_strategies', [
+                '🥗 Maintain a balanced, nutritious diet',
+                '🏃 Regular physical exercise (30 min/day)',
+                '😴 Get adequate sleep (7-8 hours)',
+                '💧 Stay well hydrated',
+                '🚭 Avoid smoking and limit alcohol'
+            ]),
+            'risk_factors': brief_data.get('risk_factors', ['Consult doctor for personalized risk assessment']),
             'key_findings': [
                 f"{len(results)} specialist agents reviewed your case",
                 f"Urgency level: {urgency.upper()}",
-                f"ESI Triage Level: {esi_level}"
+                f"ESI Triage Level: {esi_level}",
+                f"{len(symptoms_found)} symptoms identified",
+                f"{len(medications_found)} medications found"
             ],
             'next_steps': [],
+            'follow_up_actions': brief_data.get('follow_up_actions', []),
             'agents_consulted': len(results)
         }
         
