@@ -26,7 +26,7 @@ export interface User {
 }
 
 interface AppState {
-  currentScreen: 'home' | 'dashboard' | 'upload' | 'about';
+  currentScreen: 'home' | 'dashboard' | 'upload' | 'about' | 'test';
   setCurrentScreen: (screen: AppState['currentScreen']) => void;
   user: User | null;
   isLoggedIn: boolean;

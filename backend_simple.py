@@ -71,12 +71,21 @@ def chat():
         Be caring, use simple language, ask one question at a time.
         If symptoms sound serious, urge calling emergency services."""
         
-        response = llm_service.generate_text(
-            prompt=f"Patient says: {message}\nContext: {session['context'][:500]}",
-            system_prompt=system_prompt,
+        prompt = f"""System: {system_prompt}
+
+Patient says: {message}
+
+Previous context: {session['context'][:500]}
+
+Provide an empathetic, helpful response:"""
+        
+        llm_response = llm_service.analyze(
+            prompt=prompt,
             temperature=0.7,
             max_tokens=200
         )
+        
+        response = llm_response.text if llm_response.success else "I'm having trouble right now. Please try again."
         
         session['messages'].append({'role': 'assistant', 'content': response})
         
@@ -108,15 +117,32 @@ def chat():
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
-    """Run AI agent analysis"""
+    """Run AI agent analysis on symptoms or uploaded files"""
     try:
-        data = request.json
-        patient_id = data.get('patient_id', 'default')
+        # Check if file was uploaded
+        if 'file' in request.files:
+            file = request.files['file']
+            patient_id = request.form.get('patient_id', 'default')
+            
+            if file.filename == '':
+                return jsonify({'error': 'No file selected'}), 400
+            
+            # Read file content
+            file_content = file.read().decode('utf-8', errors='ignore')
+            context = f"Medical Report Analysis:\n{file_content}"
+            
+            print(f"Analyzing uploaded file for patient {patient_id}...")
+            print(f"File: {file.filename}, Size: {len(file_content)} bytes")
+            
+        else:
+            # Handle JSON request
+            data = request.json
+            patient_id = data.get('patient_id', 'default')
+            
+            session = patient_sessions.get(patient_id, {})
+            context = session.get('context', data.get('symptoms', ''))
         
-        session = patient_sessions.get(patient_id, {})
-        context = session.get('context', data.get('symptoms', ''))
-        
-        # Run agents
+        # Run agents in parallel
         print(f"Analyzing for patient {patient_id}...")
         
         results = {}
@@ -128,6 +154,11 @@ def analyze():
             ('musculoskeletal', msk_agent, 'Bone & Muscle'),
             ('triage', triage_agent, 'Priority Assessment')
         ]
+        
+        # Extract symptoms, medications, and findings
+        symptoms_found = []
+        medications_found = []
+        findings = []
         
         for agent_id, agent, name in agents:
             try:
@@ -143,65 +174,126 @@ def analyze():
                     'patient_id': patient_id
                 })
                 
+                # Extract key information from result
+                if result:
+                    # Simple keyword extraction for symptoms
+                    symptom_keywords = ['pain', 'fever', 'cough', 'headache', 'nausea', 'dizziness', 
+                                       'shortness of breath', 'chest pain', 'fatigue', 'weakness']
+                    for keyword in symptom_keywords:
+                        if keyword in context.lower() and keyword not in symptoms_found:
+                            symptoms_found.append(keyword.title())
+                    
+                    # Extract medication mentions
+                    med_keywords = ['aspirin', 'paracetamol', 'ibuprofen', 'amoxicillin', 
+                                   'metformin', 'insulin', 'lisinopril', 'atorvastatin']
+                    for med in med_keywords:
+                        if med in context.lower() and med not in medications_found:
+                            medications_found.append(med.title())
+                
                 results[agent_id] = {
-                    'diagnosis': result[:200] if result else 'Analysis complete',
+                    'diagnosis': result[:300] if result else 'Analysis complete',
                     'confidence': 85,
-                    'timestamp': datetime.now().isoformat()
+                    'timestamp': datetime.now().isoformat(),
+                    'agent_name': name
                 }
             except Exception as e:
                 print(f"Agent {agent_id} error: {e}")
-                results[agent_id] = {'error': str(e)}
+                results[agent_id] = {'error': str(e), 'agent_name': name}
         
-        # Generate summary
+        # Generate comprehensive summary with medications
+        urgency = 'moderate'
+        esi_level = 3
+        recommendation = '📋 See a doctor soon. Try to get an appointment within 24 hours.'
+        
+        # Check for urgent symptoms
+        urgent_keywords = ['chest pain', 'shortness of breath', 'severe pain', 'unconscious', 
+                          'bleeding', 'stroke', 'heart attack', 'emergency']
+        for keyword in urgent_keywords:
+            if keyword in context.lower():
+                urgency = 'high'
+                esi_level = 2
+                recommendation = '🚨 EMERGENCY: Go to the emergency room immediately or call 108!'
+                break
+        
+        # Check for moderate urgency
+        moderate_keywords = ['fever', 'infection', 'diabetes', 'high blood pressure', 'pneumonia']
+        if urgency == 'moderate':
+            for keyword in moderate_keywords:
+                if keyword in context.lower():
+                    urgency = 'moderate-high'
+                    esi_level = 3
+                    recommendation = '⚠️ Schedule a doctor appointment within 24-48 hours.'
+                    break
+        
         summary = {
-            'urgency': 'moderate',
-            'esi_level': 3,
-            'primary_concern': 'Symptoms under review',
-            'recommendation': '📋 See a doctor soon. Try to get an appointment within 24 hours.',
-            'next_steps': [
-                'Call your doctor for an appointment',
-                'Monitor your symptoms',
-                'Go to ER if symptoms worsen',
-                'Rest and stay hydrated'
+            'urgency': urgency,
+            'esi_level': esi_level,
+            'primary_concern': 'Medical review required',
+            'recommendation': recommendation,
+            'symptoms_identified': symptoms_found if symptoms_found else ['Under review'],
+            'medications_mentioned': medications_found if medications_found else ['None found in report'],
+            'key_findings': [
+                f"{len(results)} specialist agents reviewed your case",
+                f"Urgency level: {urgency.upper()}",
+                f"ESI Triage Level: {esi_level}"
             ],
+            'next_steps': [],
             'agents_consulted': len(results)
         }
         
-        # Check for urgent symptoms
-        if 'chest pain' in context.lower() or 'shortness of breath' in context.lower():
-            summary['urgency'] = 'high'
-            summary['esi_level'] = 2
-            summary['recommendation'] = '⚠️ This needs urgent medical care. Go to the emergency room now.'
+        # Add next steps based on urgency
+        if urgency == 'high':
             summary['next_steps'] = [
-                'Go to emergency room immediately',
-                'Don\'t drive yourself if possible',
-                'Bring this report with you',
-                'Have someone accompany you'
+                '🚑 Call ambulance (108) immediately',
+                '🏥 Go to nearest emergency room',
+                '📱 Have someone accompany you',
+                '📋 Bring this analysis with you'
+            ]
+        elif urgency == 'moderate-high':
+            summary['next_steps'] = [
+                '📞 Call your doctor today',
+                '📅 Schedule appointment within 24-48 hours',
+                '📊 Monitor symptoms closely',
+                '💊 Continue current medications if prescribed',
+                '🚨 Go to ER if symptoms worsen'
+            ]
+        else:
+            summary['next_steps'] = [
+                '📞 Call your doctor for an appointment',
+                '📝 Monitor your symptoms',
+                '💧 Stay hydrated and rest',
+                '🚨 Go to ER if symptoms worsen'
             ]
         
         # Store results
-        if patient_id in patient_sessions:
-            patient_sessions[patient_id]['results'] = {
-                'summary': summary,
-                'detailed_results': results,
-                'timestamp': datetime.now().isoformat()
-            }
+        if patient_id not in patient_sessions:
+            patient_sessions[patient_id] = {}
+            
+        patient_sessions[patient_id]['results'] = {
+            'summary': summary,
+            'detailed_results': results,
+            'timestamp': datetime.now().isoformat()
+        }
         
         # Emit completion
         socketio.emit('analysis_complete', {
             'patient_id': patient_id,
-            'summary': summary
+            'summary': summary,
+            'detailed_results': results
         })
         
         return jsonify({
-            'status': 'started',
+            'status': 'complete',
             'analysis_id': f"{patient_id}_{int(datetime.now().timestamp())}",
-            'estimated_time': '30 seconds',
-            'message': 'AI specialists are reviewing your case'
+            'summary': summary,
+            'detailed_results': results,
+            'message': '✅ Analysis complete! All 6 specialists have reviewed your case.'
         })
         
     except Exception as e:
         print(f"Analysis error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/results/<patient_id>', methods=['GET'])

@@ -1,0 +1,35 @@
+ELECTROCARDIOGRAM REPORT
+========================
+
+Patient ID: P12345
+Date: November 22, 2025
+Time: 10:30 AM
+
+PATIENT INFORMATION:
+Name: John Doe
+Age: 45 years
+Gender: Male
+
+ECG FINDINGS:
+-------------
+Heart Rate: 72 bpm
+Rhythm: Normal Sinus Rhythm
+PR Interval: 160 ms (Normal)
+QRS Duration: 90 ms (Normal)
+QT/QTc Interval: 380/410 ms (Normal)
+Axis: Normal (0° to +90°)
+
+INTERPRETATION:
+--------------
+✓ Normal sinus rhythm
+✓ No ST-segment changes
+✓ No T-wave abnormalities
+✓ No evidence of ischemia
+✓ No arrhythmias detected
+✓ Normal cardiac electrical activity
+
+CONCLUSION: Normal ECG
+Risk Level: LOW
+
+Cardiologist: Dr. Sarah Johnson, MD
+Reviewed: November 22, 2025

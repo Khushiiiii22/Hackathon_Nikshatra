@@ -1,0 +1,52 @@
+CHEST X-RAY REPORT
+==================
+
+Patient ID: P78901
+Date: November 22, 2025
+Time: 14:30 PM
+
+PATIENT INFORMATION:
+Name: David Martinez
+Age: 42 years
+Gender: Male
+Indication: Routine check-up
+
+TECHNIQUE:
+---------
+PA and Lateral chest radiographs
+
+FINDINGS:
+--------
+Lungs:
+✓ Both lung fields are clear
+✓ No infiltrates, nodules, or masses
+✓ No pneumothorax or pleural effusion
+✓ Normal pulmonary vasculature
+
+Heart:
+✓ Normal cardiac silhouette
+✓ Cardiothoracic ratio: 0.45 (Normal: <0.5)
+✓ No cardiomegaly
+
+Mediastinum:
+✓ Normal mediastinal contour
+✓ No widening or masses
+✓ Trachea midline
+
+Bones:
+✓ No fractures or lytic lesions
+✓ Normal thoracic spine alignment
+
+Soft Tissues:
+✓ Normal soft tissue appearance
+✓ No subcutaneous emphysema
+
+IMPRESSION:
+----------
+Normal chest radiograph
+No acute cardiopulmonary abnormality
+
+Risk Level: LOW
+
+Radiologist: Dr. Emily Thompson, MD
+Reviewed: November 22, 2025

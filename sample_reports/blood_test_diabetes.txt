@@ -1,0 +1,67 @@
+BLOOD TEST REPORT - DIABETES SCREENING
+======================================
+
+Patient ID: P44556
+Date: November 22, 2025
+Lab: MIMIQ Diagnostic Center
+
+PATIENT INFORMATION:
+Name: Robert Johnson
+Age: 58 years
+Gender: Male
+Symptoms: Increased thirst, frequent urination, fatigue
+
+DIABETES PANEL:
+--------------
+Fasting Glucose: 165 mg/dL ⚠ HIGH (Normal: 70-100)
+HbA1c: 7.8% ⚠ HIGH (Normal: <5.7, Diabetes: ≥6.5)
+Random Glucose: 245 mg/dL ⚠ HIGH
+C-Peptide: 2.1 ng/mL (Normal: 0.8-3.1)
+Insulin: 15 μIU/mL (Normal: 2-20)
+
+LIPID PROFILE:
+-------------
+Total Cholesterol: 240 mg/dL ⚠ HIGH (Normal: <200)
+LDL Cholesterol: 155 mg/dL ⚠ HIGH (Normal: <130)
+HDL Cholesterol: 38 mg/dL ⚠ LOW (Normal: >40)
+Triglycerides: 220 mg/dL ⚠ HIGH (Normal: <150)
+
+KIDNEY FUNCTION (Diabetes Complication Check):
+--------------------------------------------
+Creatinine: 1.4 mg/dL ⚠ ELEVATED (Normal: 0.6-1.2)
+BUN: 25 mg/dL ⚠ ELEVATED (Normal: 7-20)
+eGFR: 65 mL/min ⚠ REDUCED (Normal: >90)
+Microalbuminuria: 45 mg/24hr ⚠ PRESENT (Normal: <30)
+
+COMPLETE BLOOD COUNT:
+--------------------
+Hemoglobin: 11.8 g/dL ⚠ LOW (Normal: 13-17)
+WBC: 8,500/μL (Normal)
+Platelets: 280,000/μL (Normal)
+
+DIAGNOSIS:
+---------
+⚠ TYPE 2 DIABETES MELLITUS confirmed
+⚠ Dyslipidemia (abnormal cholesterol)
+⚠ Early diabetic nephropathy (kidney involvement)
+⚠ Mild anemia
+
+RECOMMENDATIONS:
+---------------
+🚨 URGENT: Start diabetes medication (Metformin)
+🚨 Lifestyle modifications required
+   - Diet: Low carb, high fiber
+   - Exercise: 30 min daily
+   - Weight loss goal: 10% body weight
+🚨 Monitor blood sugar daily
+🚨 Repeat HbA1c in 3 months
+🚨 Ophthalmology referral for eye exam
+🚨 Cardiology consultation for CV risk
+🚨 Consider ACE inhibitor for kidney protection
+
+Risk Level: MEDIUM-HIGH
+Follow-up: 2 weeks
+
+Endocrinologist: Dr. Lisa Anderson, MD
+Reviewed: November 22, 2025
+**REQUIRES IMMEDIATE TREATMENT**

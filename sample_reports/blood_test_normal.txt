@@ -1,0 +1,57 @@
+COMPREHENSIVE BLOOD TEST REPORT
+================================
+
+Patient ID: P11223
+Date: November 22, 2025
+Lab: MIMIQ Diagnostic Center
+
+PATIENT INFORMATION:
+Name: Alice Williams
+Age: 35 years
+Gender: Female
+
+COMPLETE BLOOD COUNT (CBC):
+---------------------------
+Hemoglobin: 13.5 g/dL (Normal: 12-16)
+RBC Count: 4.8 million/μL (Normal: 4.2-5.4)
+WBC Count: 7,200/μL (Normal: 4,000-11,000)
+Platelets: 250,000/μL (Normal: 150,000-400,000)
+Hematocrit: 40% (Normal: 37-47)
+
+LIPID PROFILE:
+-------------
+Total Cholesterol: 180 mg/dL (Normal: <200)
+LDL Cholesterol: 110 mg/dL (Normal: <130)
+HDL Cholesterol: 55 mg/dL (Normal: >40)
+Triglycerides: 140 mg/dL (Normal: <150)
+
+BLOOD SUGAR:
+-----------
+Fasting Glucose: 92 mg/dL (Normal: 70-100)
+HbA1c: 5.4% (Normal: <5.7)
+
+LIVER FUNCTION:
+--------------
+ALT: 28 U/L (Normal: 7-56)
+AST: 32 U/L (Normal: 10-40)
+Bilirubin: 0.8 mg/dL (Normal: 0.3-1.2)
+
+KIDNEY FUNCTION:
+---------------
+Creatinine: 0.9 mg/dL (Normal: 0.6-1.2)
+BUN: 15 mg/dL (Normal: 7-20)
+eGFR: >90 mL/min (Normal: >90)
+
+THYROID:
+-------
+TSH: 2.1 mIU/L (Normal: 0.4-4.0)
+T4: 7.5 μg/dL (Normal: 5-12)
+
+CONCLUSION:
+----------
+✓ All parameters within normal range
+✓ No abnormalities detected
+✓ Good overall health status
+
+Pathologist: Dr. Robert Martinez, MD
+Reviewed: November 22, 2025

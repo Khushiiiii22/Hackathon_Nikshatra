@@ -1,0 +1,77 @@
+CHEST X-RAY REPORT - URGENT
+============================
+
+Patient ID: P99887
+Date: November 22, 2025
+Time: 16:45 PM
+
+PATIENT INFORMATION:
+Name: Maria Garcia
+Age: 68 years
+Gender: Female
+Symptoms: Fever (101.5°F), cough, shortness of breath, chest pain
+Duration: 3 days
+
+TECHNIQUE:
+---------
+PA and Lateral chest radiographs
+Portable bedside examination
+
+FINDINGS:
+--------
+Lungs:
+⚠ RIGHT LOWER LOBE CONSOLIDATION present
+⚠ Airspace opacity in right base (8cm x 6cm)
+⚠ Air bronchograms visible
+⚠ Increased opacity compared to left lung
+⚠ Blunting of right costophrenic angle
+✓ Left lung clear
+
+Heart:
+✓ Normal cardiac size
+✓ No cardiomegaly
+
+Mediastinum:
+✓ Normal mediastinal contour
+⚠ Mild tracheal deviation to right
+
+Pleura:
+⚠ Small right pleural effusion (2cm)
+✓ Left pleural space clear
+
+Soft Tissues:
+✓ Normal appearance
+
+IMPRESSION:
+----------
+🚨 RIGHT LOWER LOBE PNEUMONIA
+🚨 Small right-sided pleural effusion
+🚨 Clinical correlation with infection markers advised
+
+DIFFERENTIAL DIAGNOSIS:
+----------------------
+1. Bacterial pneumonia (most likely)
+2. Atypical pneumonia
+3. Aspiration pneumonia
+
+RECOMMENDATIONS:
+---------------
+🚨 URGENT: Start empirical antibiotics immediately
+   - Suggested: Ceftriaxone + Azithromycin
+🚨 Blood cultures before antibiotics
+🚨 Sputum culture and sensitivity
+🚨 CBC with differential
+🚨 Procalcitonin and CRP levels
+🚨 Pulse oximetry monitoring
+🚨 Consider chest CT if no improvement in 48-72 hours
+🚨 Follow-up X-ray in 7-10 days
+🚨 Admit for observation if oxygen saturation <92%
+
+Risk Level: HIGH
+Severity: MODERATE-SEVERE
+Follow-up: 24-48 hours or sooner if worsening
+
+Radiologist: Dr. James Wilson, MD
+Pulmonologist notified: Dr. Patricia Lee, MD
+Reviewed: November 22, 2025
+**URGENT TREATMENT REQUIRED**

@@ -1,0 +1,49 @@
+ELECTROCARDIOGRAM REPORT
+========================
+
+Patient ID: P67890
+Date: November 22, 2025
+Time: 11:45 AM
+
+PATIENT INFORMATION:
+Name: Jane Smith
+Age: 62 years
+Gender: Female
+
+ECG FINDINGS:
+-------------
+Heart Rate: 105 bpm (Elevated)
+Rhythm: Sinus Tachycardia
+PR Interval: 180 ms (Normal)
+QRS Duration: 110 ms (Slightly Prolonged)
+QT/QTc Interval: 420/480 ms (Prolonged)
+Axis: Left Axis Deviation (-30°)
+
+ABNORMAL FINDINGS:
+-----------------
+⚠ Sinus tachycardia present
+⚠ ST-segment depression in leads V4-V6 (1.5mm)
+⚠ T-wave inversion in leads II, III, aVF
+⚠ Left ventricular hypertrophy pattern
+⚠ Possible anterior ischemia
+
+CLINICAL CORRELATION:
+--------------------
+Findings suggest:
+- Myocardial ischemia
+- Left ventricular strain
+- Possible coronary artery disease
+
+RECOMMENDATION:
+--------------
+⚠ URGENT: Cardiology consultation recommended
+⚠ Consider cardiac enzymes (Troponin)
+⚠ Stress test or coronary angiography may be needed
+⚠ Continue cardiac monitoring
+
+CONCLUSION: Abnormal ECG - Requires immediate attention
+Risk Level: HIGH
+
+Cardiologist: Dr. Michael Chen, MD
+Reviewed: November 22, 2025
+**URGENT FOLLOW-UP REQUIRED**

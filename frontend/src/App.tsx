@@ -6,6 +6,7 @@ import { HomeScreen } from './screens/HomeScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { UploadScreen } from './screens/UploadScreen';
 import { AboutScreen } from './screens/AboutScreen';
+import { SystemTest } from './screens/SystemTest';
 
 function App() {
   const { currentScreen } = useAppStore();
@@ -34,6 +35,7 @@ function App() {
         {currentScreen === 'dashboard' && <DashboardScreen />}
         {currentScreen === 'upload' && <UploadScreen />}
         {currentScreen === 'about' && <AboutScreen />}
+        {currentScreen === 'test' && <SystemTest />}
       </div>
 
       {/* Floating Chatbot */}
