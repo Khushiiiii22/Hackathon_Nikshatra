@@ -24,6 +24,15 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 DEFAULT_MODEL = os.getenv('LLM_MODEL', 'gemini-2.5-flash')
 
+# Multi-language support
+LANGUAGE_PROMPTS = {
+    'english': 'Respond in English with clear, empathetic medical explanations.',
+    'hindi': 'जवाब हिंदी में दें। स्पष्ट और सहानुभूतिपूर्ण चिकित्सा व्याख्या दें। (Respond in Hindi with clear explanations)',
+    'kannada': 'ಕನ್ನಡದಲ್ಲಿ ಉತ್ತರಿಸಿ. ಸ್ಪಷ್ಟ ಮತ್ತು ಸಹಾನುಭೂತಿಯ ವೈದ್ಯಕೀಯ ವಿವರಣೆಗಳನ್ನು ನೀಡಿ। (Respond in Kannada with clear explanations)'
+}
+
+DEFAULT_LANGUAGE = 'english'
+
 
 @dataclass
 class LLMResponse:
