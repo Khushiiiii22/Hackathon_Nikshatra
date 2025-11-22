@@ -26,9 +26,10 @@ DEFAULT_MODEL = os.getenv('LLM_MODEL', 'gemini-2.5-flash')
 
 # Multi-language support
 LANGUAGE_PROMPTS = {
-    'english': 'You are a professional medical doctor with extensive clinical experience. Provide medically accurate, evidence-based responses with proper clinical reasoning. Use medical terminology appropriately while ensuring patient understanding.'},
+    'english': 'You are a professional medical doctor with extensive clinical experience. Provide medically accurate, evidence-based responses with proper clinical reasoning. Use medical terminology appropriately while ensuring patient understanding.',
     'hindi': 'आप एक पेशेवर चिकित्सक हैं जो व्यापक नैदानिक अनुभव के साथ हैं। चिकित्सकीय रूप से सटीक, साक्ष्य-आधारित उत्तर उचित नैदानिक तर्क के साथ प्रदान करें। रोगी की समझ सुनिश्चित करते हुए चिकित्सा शब्दावली का उचित उपयोग करें।',
     'kannada': 'ನೀವು ವ್ಯಾಪಕ ಕ್ಲಿನಿಕಲ್ ಅನುಭವವನ್ನು ಹೊಂದಿರುವ ವೃತ್ತಿಪರ ವೈದ್ಯರು. ಸರಿಯಾದ ಕ್ಲಿನಿಕಲ್ ತರ್ಕದೊಂದಿಗೆ ವೈದ್ಯಕೀಯವಾಗಿ ನಿಖರವಾದ, ಸಾಕ್ಷ್ಯ-ಆಧಾರಿತ ಪ್ರತಿಕ್ರಿಯೆಗಳನ್ನು ಒದಗಿಸಿ. ರೋಗಿಯ ತಿಳುವಳಿಕೆಯನ್ನು ಖಚಿತಪಡಿಸುತ್ತಾ ವೈದ್ಯಕೀಯ ಪರಿಭಾಷೆಯನ್ನು ಸೂಕ್ತವಾಗಿ ಬಳಸಿ.'
+<<<<<<< HEAD
 
 }
 
@@ -118,3 +119,110 @@ Ensure all analysis is medically accurate, evidence-based, and patient-friendly 
                 'success': False,
                 'error': str(e)
             }
+=======
+}
+
+@dataclass
+class LLMResponse:
+    """Response from LLM"""
+    text: str
+    success: bool
+    model: str = ""
+    error: Optional[str] = None
+    metadata: Dict[str, Any] = None
+
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
+
+
+class GeminiService:
+    """Google Gemini LLM Service"""
+    
+    def __init__(self, api_key: Optional[str] = None, model: str = DEFAULT_MODEL):
+        """Initialize Gemini service"""
+        self.api_key = api_key or GEMINI_API_KEY
+        self.model_name = model
+        
+        if not self.api_key:
+            raise ValueError("GEMINI_API_KEY not found in environment variables")
+        
+        if not GEMINI_AVAILABLE:
+            raise ImportError("google-generativeai package not installed")
+        
+        # Configure Gemini
+        genai.configure(api_key=self.api_key)
+        self.model = genai.GenerativeModel(self.model_name)
+        
+        logger.info(f"✅ Gemini configured with model: {self.model_name}")
+    
+    def analyze(
+        self,
+        prompt: str,
+        temperature: float = 0.3,
+        max_tokens: int = 2000,
+        language: str = 'english'
+    ) -> LLMResponse:
+        """Analyze with Gemini"""
+        try:
+            # Add language-specific system prompt
+            system_prompt = LANGUAGE_PROMPTS.get(language, LANGUAGE_PROMPTS['english'])
+            full_prompt = f"{system_prompt}\n\n{prompt}"
+            
+            # Generate response
+            response = self.model.generate_content(
+                full_prompt,
+                generation_config=genai.GenerationConfig(
+                    temperature=temperature,
+                    max_output_tokens=max_tokens
+                )
+            )
+            
+            return LLMResponse(
+                text=response.text,
+                success=True,
+                model=self.model_name,
+                metadata={'language': language}
+            )
+            
+        except Exception as e:
+            logger.error(f"Gemini analysis error: {str(e)}")
+            return LLMResponse(
+                text="",
+                success=False,
+                error=str(e),
+                model=self.model_name
+            )
+    
+    def chat(self, messages: List[Dict[str, str]], temperature: float = 0.7) -> LLMResponse:
+        """Chat with Gemini"""
+        try:
+            # Convert messages to Gemini format
+            chat = self.model.start_chat(history=[])
+            
+            # Send messages
+            for msg in messages[:-1]:  # All but last
+                if msg['role'] == 'user':
+                    chat.send_message(msg['content'])
+            
+            # Send last message and get response
+            response = chat.send_message(
+                messages[-1]['content'],
+                generation_config=genai.GenerationConfig(temperature=temperature)
+            )
+            
+            return LLMResponse(
+                text=response.text,
+                success=True,
+                model=self.model_name
+            )
+            
+        except Exception as e:
+            logger.error(f"Gemini chat error: {str(e)}")
+            return LLMResponse(
+                text="",
+                success=False,
+                error=str(e),
+                model=self.model_name
+            )
+>>>>>>> 163c926 (..)

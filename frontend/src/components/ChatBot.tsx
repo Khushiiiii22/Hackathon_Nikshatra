@@ -1,5 +1,4 @@
-now help me to create empowering ppt and give me details of each slide with highlighting the novel featue of our ai agent and explain snn how it is used and how each agents interact and making it shophisticated 
-give me one prompt to also the create the diagram in eraser.ioimport React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '../stores/appStore';
 import { X, Send, Mic, Loader2, Phone, AlertCircle, Languages } from 'lucide-react';
 import { cn } from '../lib/utils';
